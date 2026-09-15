@@ -1,660 +1,169 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meja Diskusi — Bahan Bantu Riset Tuton</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#F5F1E6;
-    --paper:#FFFDF8;
-    --ink:#1C2B39;
-    --ink-soft:#5B6B76;
-    --chalk:#1E3A2F;
-    --chalk-soft:#2B4A3B;
-    --amber:#E8A33D;
-    --amber-deep:#C9821F;
-    --sage:#7C9885;
-    --rule:#C2504E;
-    --line:#C7D8DD;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0; padding:40px 20px 80px;
-    background:var(--bg);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-  }
-  .wrap{max-width:880px; margin:0 auto;}
-
-  /* Header */
-  .head{
-    background:var(--chalk);
-    color:#F5F1E6;
-    border-radius:16px 16px 4px 4px;
-    padding:38px 42px 32px;
-    position:relative;
-    overflow:hidden;
-  }
-  .head::after{
-    content:"";
-    position:absolute; right:-40px; top:-40px;
-    width:180px; height:180px; border-radius:50%;
-    background:radial-gradient(circle, rgba(232,163,61,0.25), transparent 70%);
-  }
-  .eyebrow{
-    font-family:'JetBrains Mono',monospace; font-size:12px;
-    letter-spacing:0.14em; text-transform:uppercase;
-    color:var(--amber); margin:0 0 10px;
-  }
-  .head h1{
-    font-family:'Fraunces',serif; font-weight:600;
-    font-size:clamp(28px,4vw,38px); margin:0 0 10px; line-height:1.15;
-  }
-  .head p{ margin:0; color:#CBD8CF; font-size:14.5px; max-width:56ch; line-height:1.55;}
-
-  /* Paper card = notebook page */
-  .page{
-    background:var(--paper);
-    border-radius:4px 4px 16px 16px;
-    box-shadow:0 18px 40px rgba(28,43,57,0.12);
-    position:relative;
-    padding:34px 34px 34px 66px;
-    background-image:repeating-linear-gradient(
-      to bottom, transparent, transparent 37px, var(--line) 38px
-    );
-    background-position: 0 8px;
-  }
-  .page::before{ /* red margin rule */
-    content:""; position:absolute; left:44px; top:0; bottom:0; width:2px;
-    background:var(--rule); opacity:0.55;
-  }
-  .page::after{ /* spiral holes */
-    content:""; position:absolute; left:16px; top:26px; bottom:26px; width:8px;
-    background-image:radial-gradient(circle, var(--bg) 3.5px, transparent 3.6px);
-    background-size:8px 34px; background-repeat:repeat-y;
-    filter:drop-shadow(0 0 0 var(--ink-soft));
-    opacity:0.35;
-  }
-
-  section{ margin-bottom:30px; }
-  section:last-child{ margin-bottom:0; }
-
-  .step-label{
-    font-family:'JetBrains Mono',monospace; font-size:11.5px;
-    letter-spacing:0.08em; text-transform:uppercase;
-    color:var(--sage); font-weight:500; margin-bottom:10px;
-  }
-  h2.section-title{
-    font-family:'Fraunces',serif; font-size:19px; font-weight:600;
-    margin:0 0 14px; color:var(--chalk);
-  }
-
-  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; }
-  input[type=text], textarea, select{
-    width:100%; padding:11px 13px; border:1.5px solid #DDE3D9;
-    border-radius:9px; font-size:14px; font-family:'Inter',sans-serif;
-    background:#fff; color:var(--ink);
-  }
-  input:focus, textarea:focus, select:focus{
-    outline:none; border-color:var(--sage); box-shadow:0 0 0 3px rgba(124,152,133,0.15);
-  }
-  textarea{ resize:vertical; }
-
-  .toggle-row{ display:flex; gap:10px; margin-top:6px; }
-  .toggle-btn{
-    flex:1; padding:12px; border-radius:9px; border:1.5px solid #DDE3D9;
-    background:#fff; cursor:pointer; font-size:13.5px; font-weight:600;
-    color:var(--ink-soft); transition:.15s;
-  }
-  .toggle-btn.active{ background:var(--chalk); border-color:var(--chalk); color:#fff; }
-
-  .drop{
-    border:1.5px dashed #C7CFC2; border-radius:10px; padding:18px;
-    text-align:center; cursor:pointer; background:#FAFAF4; margin-top:4px;
-  }
-  .drop:hover{ border-color:var(--sage); }
-  .drop input{ display:none; }
-  .drop-label{ font-size:13px; color:var(--ink-soft); }
-  .file-chip-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-  .file-chip{
-    font-family:'JetBrains Mono',monospace; font-size:11px;
-    background:#EDF2E9; color:var(--chalk); padding:5px 10px;
-    border-radius:20px;
-  }
-
-  .btn{
-    border:none; border-radius:10px; font-weight:700; cursor:pointer;
-    font-family:'Inter',sans-serif; font-size:14.5px; padding:15px;
-    width:100%; transition:.15s; display:flex; align-items:center; justify-content:center; gap:8px;
-  }
-  .btn-primary{ background:var(--amber); color:var(--chalk); }
-  .btn-primary:hover{ background:var(--amber-deep); }
-  .btn-primary:disabled{ opacity:.55; cursor:wait; }
-  .btn-secondary{ background:var(--chalk); color:#fff; }
-  .btn-secondary:hover{ background:var(--chalk-soft); }
-
-  .note{
-    background:#FBF3E4; border:1px solid #EFD9AE; border-radius:9px;
-    padding:12px 14px; font-size:12.5px; color:#7A5A16; line-height:1.5; margin-top:14px;
-  }
-  .note b{ color:#5B4310; }
-
-  #outputBox{
-    width:100%; min-height:260px; padding:16px; border-radius:9px;
-    border:1.5px solid #DDE3D9; font-family:'Inter',sans-serif; font-size:14.5px;
-    line-height:1.7; background:#fff; white-space:pre-wrap;
-  }
-  .spinner{
-    width:16px; height:16px; border-radius:50%;
-    border:2.5px solid rgba(28,43,57,0.25); border-top-color:var(--chalk);
-    animation:spin .7s linear infinite;
-  }
-  @keyframes spin{ to{ transform:rotate(360deg);} }
-
-  .divider{ height:1px; background:#E5E0D2; margin:28px 0; }
-
-  .check-row{
-    display:flex; align-items:flex-start; gap:10px; margin-bottom:16px;
-    background:#F2F5EE; border:1px solid #DDE3D9; border-radius:9px; padding:12px 14px;
-  }
-  .check-row input{ margin-top:3px; width:16px; height:16px; accent-color:var(--chalk); flex-shrink:0; }
-  .check-row .check-text{ font-size:13px; color:var(--ink-soft); line-height:1.45; }
-  .check-row .check-text b{ color:var(--ink); }
-
-  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .compare-col h3{
-    font-family:'JetBrains Mono',monospace; font-size:11.5px; letter-spacing:.06em;
-    text-transform:uppercase; color:var(--sage); margin:0 0 8px;
-  }
-  .compare-col textarea{ min-height:260px; }
-  .compare-col .btn{ margin-top:10px; }
-
-  .manual-block{
-    background:#F2F5EE; border:1px solid #DDE3D9; border-radius:9px;
-    padding:16px; margin-top:16px;
-  }
-  .manual-block summary{
-    cursor:pointer; font-size:13.5px; font-weight:600; color:var(--chalk);
-    list-style:none; display:flex; align-items:center; gap:6px;
-  }
-  .manual-block summary::-webkit-details-marker{ display:none; }
-  .manual-block summary::before{ content:"▸"; color:var(--sage); transition:.15s; }
-  .manual-block[open] summary::before{ transform:rotate(90deg); }
-  .manual-body{ margin-top:12px; }
-  .manual-body p{ font-size:12.5px; color:var(--ink-soft); margin:0 0 10px; line-height:1.5; }
-  .link-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-  .link-btn{
-    flex:1; min-width:110px; text-align:center; padding:10px; border-radius:8px;
-    border:1.5px solid #DDE3D9; background:#fff; color:var(--ink); font-size:13px;
-    font-weight:600; cursor:pointer; text-decoration:none;
-  }
-  .link-btn:hover{ border-color:var(--sage); }
-
-  .hist-list{ display:flex; flex-direction:column; gap:8px; }
-  .hist-item{
-    display:flex; align-items:center; gap:10px;
-    background:#fff; border:1.5px solid #E5E0D2; border-radius:9px;
-    padding:10px 12px; cursor:pointer; transition:.15s;
-  }
-  .hist-item:hover{ border-color:var(--sage); }
-  .hist-main{ flex:1; min-width:0; }
-  .hist-topic{ font-size:13.5px; font-weight:600; color:var(--ink);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .hist-meta{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-soft); margin-top:2px; }
-  .hist-del{
-    border:none; background:none; color:#C2504E; cursor:pointer; font-size:16px;
-    padding:4px 6px; flex-shrink:0;
-  }
-  .hist-empty{ font-size:13px; color:var(--ink-soft); font-style:italic; }
-
-  footer{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:24px; }
-
-  @media(max-width:640px){
-    .grid{ grid-template-columns:1fr; }
-    .compare-grid{ grid-template-columns:1fr; }
-    .page{ padding:28px 22px 28px 52px; }
-    .page::before{ left:30px; }
-    .page::after{ display:none; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Diskusi UT - Multi AI Support</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <style>
+        /* Gaya CSS tetap sama seperti versi Anda sebelumnya untuk konsistensi */
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f4f8; padding: 20px; color: #2c3e50; }
+        .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h2 { color: #003366; text-align: center; border-bottom: 3px solid #ffcc00; padding-bottom: 10px; margin-top: 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #555; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #ccd6dd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        .ai-section { background: #f8faff; padding: 20px; border-radius: 10px; border: 1px solid #0056b3; margin-bottom: 20px; }
+        .prompt-preview-container { margin-top: 15px; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .prompt-tabs { display: flex; background: #f1f3f4; border-radius: 8px 8px 0 0; margin: -15px -15px 15px -15px; padding: 8px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: none; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .tab-btn.active { background: #6f42c1; color: white; border-radius: 6px; }
+        .prompt-textarea { height: 140px; font-size: 12px; font-family: 'Consolas', monospace; display: none; width: 100%; margin-top: 10px; }
+        .prompt-textarea.active { display: block; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 5px; }
+        .btn-copy { background: #17a2b8; color: white; width: 100%; }
+        .btn-download { background: #28a745; color: white; width: 100%; height: 50px; }
+        .status-file { font-size: 12px; color: #28a745; margin-top: 5px; display: none; }
+    </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="head">
-    <p class="eyebrow">Bahan bantu riset · bukan mesin jawaban otomatis</p>
-    <h1>Meja Diskusi</h1>
-    <p>Susun kerangka argumen dari materi kuliahmu sendiri, lalu kembangkan dengan gayamu sebelum dikirim ke ruang diskusi tuton.</p>
-  </div>
+<div class="container">
+    <h2>🔥 Tool Diskusi ga gacormah Abong</h2>
+    
+    <div class="grid">
+        <div><label>👤 Nama:</label><input type="text" id="nama" value="Udin Phetot"></div>
+        <div><label>🆔 NIM:</label><input type="text" id="nim" value="058xxxxxx"></div>
+        <div><label>🎓 Prodi:</label><input type="text" id="prodi" value="Ilmu Hukum" oninput="updatePrompt()"></div>
+        <div><label>📍 UPBJJ:</label><input type="text" id="upbjj" value="Bogor"></div>
+    </div>
 
-  <div class="page">
+    <div class="ai-section">
+        <label>1. 📝 Topik Diskusi:</label>
+        <input type="text" id="topikAI" placeholder="Contoh: Diskusi 1 Hukum Perdata" onkeyup="updatePrompt()">
+        
+        <label style="margin-top:15px;">2. 🔗 Link Referensi (Opsional):</label>
+        <input type="text" id="linkMateri" placeholder="Paste link berita atau artikel di sini..." onkeyup="updatePrompt()">
 
-    <section>
-      <p class="step-label">01 — Identitas</p>
-      <div class="grid">
-        <div><label>Nama</label><input type="text" id="nama" placeholder="Nama lengkap"></div>
-        <div><label>NIM</label><input type="text" id="nim" placeholder="Nomor Induk Mahasiswa"></div>
-        <div><label>Program Studi</label><input type="text" id="prodi" placeholder="cth. Ilmu Hukum"></div>
-        <div><label>UPBJJ</label><input type="text" id="upbjj" placeholder="cth. Bogor"></div>
-      </div>
-    </section>
-
-    <section>
-      <p class="step-label">02 — Tujuan Balasan</p>
-      <h2 class="section-title">Kamu membalas siapa?</h2>
-      <div class="toggle-row">
-        <button type="button" class="toggle-btn active" id="btnDosen" onclick="setAudience('dosen')">👩‍🏫 Tutor / Dosen</button>
-        <button type="button" class="toggle-btn" id="btnMhs" onclick="setAudience('mahasiswa')">🎓 Sesama Mahasiswa</button>
-      </div>
-    </section>
-
-    <section>
-      <p class="step-label">03 — Topik</p>
-      <h2 class="section-title">Apa yang sedang dibahas?</h2>
-      <label>Topik / pertanyaan diskusi</label>
-      <textarea id="topik" rows="3" placeholder="Tempel pertanyaan diskusi dari tuton di sini..."></textarea>
-      <label style="margin-top:12px;">Link referensi (opsional)</label>
-      <input type="text" id="linkMateri" placeholder="https://...">
-    </section>
-
-    <section>
-      <p class="step-label">04 — Materi Pendukung</p>
-      <h2 class="section-title">Unggah modul, PPT, atau artikel</h2>
-      <label class="drop" for="fileMateri">
-        <div class="drop-label">📎 Klik untuk pilih file — PDF, DOCX, PPTX, XLSX, TXT</div>
+        <label style="margin-top:15px;">3. 📁 Upload Materi (PDF, DOCX, PPTX, XLSX):</label>
         <input type="file" id="fileMateri" accept=".pdf,.docx,.xlsx,.xls,.pptx,.txt" multiple>
-      </label>
-      <div class="file-chip-row" id="fileChips"></div>
-    </section>
+        <div id="fileStatus" class="status-file">✅ Materi Berhasil Diproses!</div>
+        <div id="fileNames" style="font-size: 11px; color: #666;"></div>
 
-    <div class="divider"></div>
-
-    <section>
-      <p class="step-label">05 — Opsi & Hasilkan</p>
-      <label class="check-row" for="compareToggle">
-        <input type="checkbox" id="compareToggle" onchange="compareMode = this.checked">
-        <span class="check-text"><b>Bandingkan 2 sudut pandang</b> — cocok untuk tanggapan ke sesama mahasiswa, atau kalau kamu ingin melihat dua arah argumen sebelum memilih posisi.</span>
-      </label>
-      <button class="btn btn-primary" id="genBtn" onclick="generateDraft()">✨ Susun Kerangka Argumen</button>
-      <div class="note">
-        <b>Ini kerangka, bukan produk akhir.</b> Hasilnya dibuat untuk membantumu memahami materi dan menyusun logika argumen dengan cepat. Baca ulang, sesuaikan dengan pemahaman dan gaya bahasamu sendiri sebelum dikumpulkan — banyak kampus (termasuk UT) menindak jawaban yang disalin mentah dari AI.
-      </div>
-
-      <details class="manual-block">
-        <summary>Opsi cadangan: susun manual di AI lain</summary>
-        <div class="manual-body">
-          <p>Kalau generate langsung tidak berhasil atau kamu lebih suka pakai AI lain, salin prompt ini dan tempel sendiri di sana. Prompt ini berisi topik, materi, dan format pembuka yang sama — tanpa instruksi apa pun untuk menyamarkan hasil AI.</p>
-          <button class="btn btn-secondary" onclick="copyManualPrompt()">📋 Salin Prompt</button>
-          <div class="link-row">
-            <a class="link-btn" href="https://claude.ai/" target="_blank" rel="noopener">Buka Claude</a>
-            <a class="link-btn" href="https://www.blackbox.ai/" target="_blank" rel="noopener">Buka Blackbox</a>
-            <a class="link-btn" href="https://www.dola.com/chat/" target="_blank" rel="noopener">Buka Dola.ai</a>
-          </div>
+        <div class="prompt-preview-container">
+            <div class="prompt-tabs">
+                <button class="tab-btn active" onclick="switchTab('claude')">Claude</button>
+                <button class="tab-btn" onclick="switchTab('blackbox')">Blackbox</button>
+                <button class="tab-btn" onclick="switchTab('dola')">Dola.ai</button>
+            </div>
+            
+            <textarea id="promptPreviewClaude" class="prompt-textarea active"></textarea>
+            <textarea id="promptPreviewBlackbox" class="prompt-textarea"></textarea>
+            <textarea id="promptPreviewDola" class="prompt-textarea"></textarea>
+            
+            <button class="btn btn-copy" onclick="copyCurrentPrompt()">📋 Copy Prompt & Buka AI</button>
         </div>
-      </details>
-    </section>
+    </div>
 
-    <section id="outputSection" style="display:none;">
-      <p class="step-label">06 — Draf yang Dihasilkan</p>
-      <h2 class="section-title" id="outputTitle">Edit bebas sebelum dipakai</h2>
-
-      <div id="outputSingle">
-        <textarea id="outputBox" rows="14"></textarea>
-        <button class="btn btn-secondary" style="margin-top:12px;" onclick="downloadDraft('single')">💾 Unduh sebagai .TXT</button>
-      </div>
-
-      <div id="outputCompare" class="compare-grid" style="display:none;">
-        <div class="compare-col">
-          <h3>Sudut Pandang A</h3>
-          <textarea id="outputA" rows="14"></textarea>
-          <button class="btn btn-secondary" onclick="downloadDraft('a')">💾 Unduh Sudut A</button>
-        </div>
-        <div class="compare-col">
-          <h3>Sudut Pandang B</h3>
-          <textarea id="outputB" rows="14"></textarea>
-          <button class="btn btn-secondary" onclick="downloadDraft('b')">💾 Unduh Sudut B</button>
-        </div>
-      </div>
-    </section>
-
-    <div class="divider"></div>
-
-    <section>
-      <p class="step-label">07 — Riwayat Sesi Ini</p>
-      <h2 class="section-title">Draf sebelumnya</h2>
-      <div class="hist-list" id="histList">
-        <div class="hist-empty">Belum ada draf yang dibuat di sesi ini.</div>
-      </div>
-    </section>
-
-    <div class="divider"></div>
-
-    <section>
-      <p class="step-label">08 — Atau Tempel Manual</p>
-      <h2 class="section-title">Sudah dapat jawaban dari AI lain?</h2>
-      <label>Tempel jawaban di sini</label>
-      <textarea id="manualAnswer" rows="10" placeholder="Tempel jawaban dari AI di sini..."></textarea>
-      <button class="btn btn-secondary" style="margin-top:12px;" onclick="downloadManualAnswer()">💾 Unduh Jawaban (.TXT)</button>
-    </section>
-
-  </div>
-
-  <footer>Materi diproses di peramban kamu sendiri · tidak disimpan di server mana pun.</footer>
+    <label>4. ✏️ Hasil Jawaban AI:</label>
+    <textarea id="isiDiskusi" style="height: 200px;" placeholder="Paste jawaban dari AI di sini..."></textarea>
+    <button class="btn btn-download" onclick="downloadDiskusi()">💾 DOWNLOAD JAWABAN (.TXT)</button>
 </div>
 
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+    let combinedContent = "";
+    let activeTab = 'claude';
 
-let combinedContent = "";
-let audience = "dosen";
-let compareMode = false;
-let draftHistory = []; // in-memory only, cleared when tab closes
-
-function setAudience(a){
-  audience = a;
-  document.getElementById('btnDosen').classList.toggle('active', a === 'dosen');
-  document.getElementById('btnMhs').classList.toggle('active', a === 'mahasiswa');
-}
-
-function waktuSalam(){
-  const h = new Date().getHours();
-  if(h < 11) return "pagi";
-  if(h < 15) return "siang";
-  if(h < 19) return "sore";
-  return "malam";
-}
-
-document.getElementById('fileMateri').addEventListener('change', async function(e){
-  const files = e.target.files;
-  combinedContent = "";
-  const chipRow = document.getElementById('fileChips');
-  chipRow.innerHTML = "";
-
-  for(let file of files){
-    const chip = document.createElement('div');
-    chip.className = 'file-chip';
-    chip.textContent = '⏳ ' + file.name;
-    chipRow.appendChild(chip);
-
-    const ext = file.name.split('.').pop().toLowerCase();
-    try{
-      if(ext === 'pptx'){
-        const buf = await file.arrayBuffer();
-        const zip = await JSZip.loadAsync(buf);
-        let t = "";
-        const slides = Object.keys(zip.files).filter(f => f.startsWith('ppt/slides/slide') && f.endsWith('.xml'));
-        for(let f of slides){
-          const xml = await zip.file(f).async("string");
-          t += xml.replace(/<[^>]+>/g, ' ') + " ";
-        }
-        combinedContent += `\n[PPTX: ${file.name}]\n${t}\n`;
-      } else if(ext === 'pdf'){
-        const buf = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument(new Uint8Array(buf)).promise;
-        let t = "";
-        for(let i=1; i<=Math.min(pdf.numPages, 12); i++){
-          const p = await pdf.getPage(i);
-          const c = await p.getTextContent();
-          t += c.items.map(s => s.str).join(" ") + " ";
-        }
-        combinedContent += `\n[PDF: ${file.name}]\n${t}\n`;
-      } else if(ext === 'docx'){
-        const res = await mammoth.extractRawText({arrayBuffer: await file.arrayBuffer()});
-        combinedContent += `\n[DOCX: ${file.name}]\n${res.value}\n`;
-      } else if(ext === 'xlsx' || ext === 'xls'){
-        const buf = await file.arrayBuffer();
-        const wb = XLSX.read(buf, {type:'array'});
-        let t = "";
-        wb.SheetNames.forEach(name => {
-          t += `-- ${name} --\n` + XLSX.utils.sheet_to_csv(wb.Sheets[name]) + "\n";
-        });
-        combinedContent += `\n[XLSX: ${file.name}]\n${t}\n`;
-      } else {
-        combinedContent += `\n[TXT: ${file.name}]\n${await file.text()}\n`;
-      }
-      chip.textContent = '✅ ' + file.name;
-    } catch(err){
-      chip.textContent = '⚠️ ' + file.name + ' (gagal dibaca)';
-      console.error(err);
+    function switchTab(tab) {
+        activeTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        document.querySelectorAll('.prompt-textarea').forEach(t => t.classList.remove('active'));
+        document.getElementById(`promptPreview${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
     }
-  }
-});
 
-async function generateDraft(){
-  const btn = document.getElementById('genBtn');
-  const topik = document.getElementById('topik').value.trim();
-  if(!topik){
-    alert('Isi dulu topik / pertanyaan diskusinya ya.');
-    return;
-  }
+    function updatePrompt() {
+        const topik = document.getElementById('topikAI').value || "[Topik]";
+        const prodi = document.getElementById('prodi').value;
+        const link = document.getElementById('linkMateri').value;
+        
+        let referensi = "";
+        if(link) referensi += `\n🔗 LINK SUMBER: ${link}`;
+        if(combinedContent) referensi += `\n\n📚 ISI MATERI FILE:\n${combinedContent.substring(0, 4000)}`;
 
-  const nama = document.getElementById('nama').value || "(nama belum diisi)";
-  const prodi = document.getElementById('prodi').value || "(prodi belum diisi)";
-  const link = document.getElementById('linkMateri').value;
-  const salam = waktuSalam();
+        const basePrompt = `Saya mahasiswa ${prodi} UT. Buatkan jawaban diskusi: "${topik}". ${referensi}\n\nINSTRUKSI: Gunakan bahasa akademis yang natural, sertakan referensi, dan jangan terlihat seperti buatan AI.`;
 
-  const pembuka = audience === 'dosen'
-    ? `Selamat ${salam}, Bapak/Ibu Tutor,\n\nIzin menyampaikan tanggapan saya terkait topik diskusi di atas.`
-    : `Selamat ${salam}, rekan-rekan sekalian,\n\nIzin menambahkan/menanggapi pembahasan di atas.`;
+        document.getElementById('promptPreviewClaude').value = "MODEL: Claude AI\n" + basePrompt;
+        document.getElementById('promptPreviewBlackbox').value = "MODEL: Blackbox AI\n" + basePrompt;
+        document.getElementById('promptPreviewDola').value = "MODEL: Dola.ai\n" + basePrompt;
+    }
 
-  let konteks = `Mahasiswa program studi ${prodi}.\nTopik/pertanyaan diskusi: ${topik}`;
-  if(link) konteks += `\nLink referensi yang diberikan mahasiswa: ${link}`;
-  if(combinedContent) konteks += `\n\nCUPLIKAN MATERI YANG DIUNGGAH MAHASISWA (gunakan sebagai dasar argumen, jangan mengarang di luar ini):\n${combinedContent.substring(0, 6000)}`;
-
-  const basaRules = `Tulis dalam Bahasa Indonesia akademis yang jelas dan wajar. Jika ada materi/link yang diberikan, rujuk secara wajar (mis. "berdasarkan modul yang dipelajari..."); jangan mengarang kutipan atau sumber yang tidak diberikan. Jangan menyertakan instruksi atau komentar meta apa pun tentang AI; tulis langsung isinya saja. Ini adalah KERANGKA/DRAF BELAJAR untuk mahasiswa kembangkan dan tulis ulang dengan kata-katanya sendiri — bukan jawaban akhir yang siap ditempel.`;
-
-  const systemPromptSingle = `Kamu membantu menyusun KERANGKA ARGUMEN untuk forum diskusi tuton di perguruan tinggi Indonesia (mis. Universitas Terbuka).
-
-Gunakan kalimat pembuka berikut persis di awal:
-"${pembuka}"
-
-Setelah itu, susun 2-4 poin argumentasi yang runtut berdasarkan materi yang diberikan (bila ada). Setiap poin: satu gagasan utama + penjelasan singkat + kaitannya dengan pertanyaan diskusi. Tutup dengan 1-2 kalimat penutup yang mengundang tanggapan.
-
-${basaRules}`;
-
-  const systemPromptCompare = `Kamu membantu menyusun DUA KERANGKA ARGUMEN dengan sudut pandang berbeda (mis. pro vs kontra, atau dua pendekatan analisis berbeda) untuk forum diskusi tuton di perguruan tinggi Indonesia.
-
-Setiap sudut pandang diawali kalimat pembuka bernada sama seperti ini (boleh divariasikan sedikit kalimatnya agar tidak identik):
-"${pembuka}"
-
-Setiap sudut pandang berisi 2-3 poin argumentasi runtut berdasarkan materi yang diberikan (bila ada), ditutup 1 kalimat penutup singkat.
-
-${basaRules}
-
-Format keluaran WAJIB persis seperti ini, tanpa teks lain di luar dua bagian ini:
-###SUDUT A###
-<isi lengkap sudut pandang A>
-###SUDUT B###
-<isi lengkap sudut pandang B>`;
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Menyusun kerangka...';
-
-  try{
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1000,
-        system: compareMode ? systemPromptCompare : systemPromptSingle,
-        messages: [{ role: "user", content: konteks }]
-      })
+    document.getElementById('fileMateri').addEventListener('change', async function(e) {
+        const files = e.target.files;
+        combinedContent = "";
+        let names = [];
+        
+        for (let file of files) {
+            names.push(file.name);
+            const ext = file.name.split('.').pop().toLowerCase();
+            
+            try {
+                if (ext === 'pptx') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const zip = await JSZip.loadAsync(arrayBuffer);
+                    let pptText = "";
+                    const slideFiles = Object.keys(zip.files).filter(f => f.startsWith('ppt/slides/slide'));
+                    for(let f of slideFiles) {
+                        const xml = await zip.file(f).async("string");
+                        pptText += xml.replace(/<[^>]+>/g, ' ') + " ";
+                    }
+                    combinedContent += `\n[FILE PPT: ${file.name}]\n${pptText}\n`;
+                } else if (ext === 'pdf') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument(new Uint8Array(arrayBuffer)).promise;
+                    let t = "";
+                    for(let i=1; i<=Math.min(pdf.numPages, 10); i++) {
+                        const p = await pdf.getPage(i);
+                        const c = await p.getTextContent();
+                        t += c.items.map(s => s.str).join(" ");
+                    }
+                    combinedContent += `\n[FILE PDF: ${file.name}]\n${t}\n`;
+                } else if (ext === 'docx') {
+                    const res = await mammoth.extractRawText({arrayBuffer: await file.arrayBuffer()});
+                    combinedContent += `\n[FILE DOCX: ${file.name}]\n${res.value}\n`;
+                } else {
+                    combinedContent += `\n[FILE: ${file.name}]\n${await file.text()}\n`;
+                }
+            } catch (err) { console.error("Gagal baca: " + file.name); }
+        }
+        document.getElementById('fileNames').innerText = "File: " + names.join(", ");
+        document.getElementById('fileStatus').style.display = 'block';
+        updatePrompt();
     });
-    const data = await response.json();
-    const raw = (data.content || []).map(b => b.text || "").join("\n").trim();
 
-    const entry = {
-      id: Date.now(),
-      topik: topik,
-      audience: audience,
-      mode: compareMode ? 'compare' : 'single',
-      time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
-    };
-
-    if(compareMode){
-      const markerB = "###SUDUT B###";
-      const idxB = raw.indexOf(markerB);
-      let a = raw, b = "(Tidak ada hasil untuk sudut B — coba lagi.)";
-      if(idxB !== -1){
-        a = raw.substring(0, idxB).replace("###SUDUT A###", "").trim();
-        b = raw.substring(idxB + markerB.length).trim();
-      }
-      entry.dataA = a;
-      entry.dataB = b;
-      showCompareOutput(a, b);
-    } else {
-      entry.dataSingle = raw || "(Tidak ada hasil — coba lagi.)";
-      showSingleOutput(entry.dataSingle);
+    function copyCurrentPrompt() {
+        const txt = document.querySelector('.prompt-textarea.active');
+        txt.select();
+        navigator.clipboard.writeText(txt.value);
+        alert("Prompt Disalin! Membuka tab AI...");
+        if(activeTab === 'claude') window.open("https://claude.ai/", "_blank");
+        if(activeTab === 'blackbox') window.open("https://www.blackbox.ai/", "_blank");
+        if(activeTab === 'dola') window.open("https://www.dola.com/chat/", "_blank");
     }
 
-    draftHistory.unshift(entry);
-    renderHistory();
-
-    document.getElementById('outputSection').style.display = 'block';
-    document.getElementById('outputSection').scrollIntoView({behavior:'smooth', block:'start'});
-  } catch(err){
-    console.error(err);
-    alert('Gagal menyusun kerangka. Coba lagi sebentar lagi.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '✨ Susun Kerangka Argumen';
-  }
-}
-
-function showSingleOutput(text){
-  document.getElementById('outputTitle').textContent = 'Edit bebas sebelum dipakai';
-  document.getElementById('outputBox').value = text;
-  document.getElementById('outputSingle').style.display = 'block';
-  document.getElementById('outputCompare').style.display = 'none';
-}
-
-function showCompareOutput(a, b){
-  document.getElementById('outputTitle').textContent = 'Pilih atau gabungkan sudut yang paling sesuai';
-  document.getElementById('outputA').value = a;
-  document.getElementById('outputB').value = b;
-  document.getElementById('outputSingle').style.display = 'none';
-  document.getElementById('outputCompare').style.display = 'grid';
-}
-
-function renderHistory(){
-  const list = document.getElementById('histList');
-  if(draftHistory.length === 0){
-    list.innerHTML = '<div class="hist-empty">Belum ada draf yang dibuat di sesi ini.</div>';
-    return;
-  }
-  list.innerHTML = "";
-  draftHistory.forEach(entry => {
-    const row = document.createElement('div');
-    row.className = 'hist-item';
-    const modeTag = entry.mode === 'compare' ? '· 2 sudut pandang' : '';
-    const audTag = entry.audience === 'dosen' ? 'Tutor/Dosen' : 'Sesama Mahasiswa';
-    row.innerHTML = `
-      <div class="hist-main">
-        <div class="hist-topic">${escapeHtml(entry.topik)}</div>
-        <div class="hist-meta">${entry.time} · ${audTag} ${modeTag}</div>
-      </div>
-      <button class="hist-del" title="Hapus" onclick="deleteHistory(event, ${entry.id})">×</button>
-    `;
-    row.onclick = () => loadHistory(entry.id);
-    list.appendChild(row);
-  });
-}
-
-function loadHistory(id){
-  const entry = draftHistory.find(e => e.id === id);
-  if(!entry) return;
-  compareMode = entry.mode === 'compare';
-  document.getElementById('compareToggle').checked = compareMode;
-  if(compareMode){
-    showCompareOutput(entry.dataA, entry.dataB);
-  } else {
-    showSingleOutput(entry.dataSingle);
-  }
-  document.getElementById('outputSection').style.display = 'block';
-  document.getElementById('outputSection').scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-function deleteHistory(evt, id){
-  evt.stopPropagation();
-  draftHistory = draftHistory.filter(e => e.id !== id);
-  renderHistory();
-}
-
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-function buildManualPrompt(){
-  const topik = document.getElementById('topik').value.trim() || "[Topik belum diisi]";
-  const prodi = document.getElementById('prodi').value || "[Prodi]";
-  const link = document.getElementById('linkMateri').value;
-  const salam = waktuSalam();
-
-  const pembuka = audience === 'dosen'
-    ? `Selamat ${salam}, Bapak/Ibu Tutor,\n\nIzin menyampaikan tanggapan saya terkait topik diskusi di atas.`
-    : `Selamat ${salam}, rekan-rekan sekalian,\n\nIzin menambahkan/menanggapi pembahasan di atas.`;
-
-  let konteks = `Saya mahasiswa program studi ${prodi}. Tolong bantu saya susun KERANGKA ARGUMEN (bukan jawaban jadi) untuk forum diskusi tuton, dengan topik: "${topik}".`;
-  if(link) konteks += `\n\nLink referensi: ${link}`;
-  if(combinedContent) konteks += `\n\nCuplikan materi yang saya unggah (gunakan sebagai dasar argumen, jangan mengarang di luar ini):\n${combinedContent.substring(0, 4000)}`;
-
-  konteks += `\n\nGunakan kalimat pembuka ini persis di awal:\n"${pembuka}"\n\nSetelah itu, susun 2-4 poin argumentasi runtut berdasarkan materi di atas, tutup dengan 1-2 kalimat penutup. Tulis dalam Bahasa Indonesia akademis yang wajar. Ini untuk saya pelajari dan tulis ulang dengan kata-kata saya sendiri sebelum dikumpulkan.`;
-
-  return konteks;
-}
-
-function copyManualPrompt(){
-  const text = buildManualPrompt();
-  navigator.clipboard.writeText(text).then(() => {
-    alert('Prompt disalin! Tempel di AI pilihanmu, lalu tulis ulang hasilnya dengan gayamu sendiri sebelum dikumpulkan.');
-  }).catch(() => {
-    alert('Gagal menyalin otomatis — silakan salin manual dari kotak berikut:\n\n' + text);
-  });
-}
-
-function downloadManualAnswer(){
-  const nama = document.getElementById('nama').value || "Mahasiswa";
-  const nim = document.getElementById('nim').value || "";
-  const isi = document.getElementById('manualAnswer').value;
-  if(!isi.trim()){
-    alert('Belum ada jawaban yang ditempel.');
-    return;
-  }
-  const text = `Nama: ${nama}\nNIM: ${nim}\n\n${isi}`;
-  const blob = new Blob([text], {type:'text/plain'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `Diskusi_${nama.replace(/\s+/g,'_')}_Manual.txt`;
-  a.click();
-}
-
-function downloadDraft(which){
-  const nama = document.getElementById('nama').value || "Mahasiswa";
-  const nim = document.getElementById('nim').value || "";
-
-  let isi, suffix;
-  if(which === 'a'){ isi = document.getElementById('outputA').value; suffix = "_SudutA"; }
-  else if(which === 'b'){ isi = document.getElementById('outputB').value; suffix = "_SudutB"; }
-  else { isi = document.getElementById('outputBox').value; suffix = ""; }
-
-  const text = `Nama: ${nama}\nNIM: ${nim}\n\n${isi}`;
-  const blob = new Blob([text], {type:'text/plain'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `Diskusi_${nama.replace(/\s+/g,'_')}${suffix}.txt`;
-  a.click();
-}
+    function downloadDiskusi() {
+        const text = `Yth. Tutor,\n\nNama: ${document.getElementById('nama').value}\nNIM: ${document.getElementById('nim').value}\n\n${document.getElementById('isiDiskusi').value}`;
+        const blob = new Blob([text], {type: 'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Diskusi_UT_${document.getElementById('nama').value}.txt`;
+        a.click();
+    }
 </script>
 </body>
 </html>
